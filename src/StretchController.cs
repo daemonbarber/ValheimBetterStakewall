@@ -439,15 +439,25 @@ namespace ValheimBetterStakewall
             bool cheated = (inv.ItemCheated(_prefab.m_resources, -1, true) || player.NoCostCheat())
                            && !PlayerProfile.s_bypassCheatChecks;
 
+            // Per piece, mirror vanilla's TryPlacePiece (log line and player stats) before PlacePiece. Only the
+            // first piece swings the tool (doAttack), so a drag plays one build animation.
+            var profile = Game.instance ? Game.instance.GetPlayerProfile() : null;
             IsCommitting = true;
             try
             {
                 for (int i = 0; i < count; i++)
+                {
+                    ZLog.Log("Placed " + _prefab.gameObject.name);
+                    if (Game.instance) Game.instance.IncrementPlayerStat(PlayerStatType.Builds, 1f, cheated);
+                    profile?.IncrementStatBuildPiecePlaced(_prefab.m_name, 1f, cheated);
                     player.PlacePiece(_prefab, _plan[i].Position, _plan[i].Rotation, i == 0, cheated);
+                }
             }
             finally { IsCommitting = false; }
 
-            // PlacePiece only spawns the piece; vanilla charges costs in UpdatePlacement, so do the same here.
+            // The rest mirrors what vanilla UpdatePlacement does after a successful TryPlacePiece.
+            if (Hud.instance && Hud.instance.m_buildUi) Hud.instance.m_buildUi.AddRecentPiece(_prefab);
+
             if (CostApplies(player))
                 player.ConsumeResources(_prefab.m_resources, 0, -1, count);
 
@@ -456,11 +466,14 @@ namespace ValheimBetterStakewall
             var table = GameAccess.BuildPieces(player);
             if (table && table.m_skill != Skills.SkillType.None)
             {
+                bool crafting = table.m_skill == Skills.SkillType.Crafting;
                 for (int i = 0; i < count; i++)
                 {
+                    if (crafting && Game.instance) Game.instance.IncrementPlayerStat(PlayerStatType.BuiltPieces, 1f, false);
                     ref int debt = ref GameAccess.BuildRemoveDebt(player);
-                    if (debt > 0) debt--;
-                    else player.RaiseSkill(table.m_skill, 1f);
+                    if (debt > 0) { debt--; continue; }
+                    player.RaiseSkill(table.m_skill, 1f);
+                    if (crafting && Game.instance) Game.instance.IncrementPlayerStat(PlayerStatType.BuiltPiecesNoDebt, 1f, false);
                 }
             }
 
@@ -472,7 +485,7 @@ namespace ValheimBetterStakewall
                     float wear = GameAccess.GetPlaceDurability(player, tool) * Game.m_durabilityRate * count;
                     tool.m_durability = Mathf.Max(0f, tool.m_durability - wear);
                 }
-                tool.m_shared.m_buildEffect.Create(player.transform.position, Quaternion.identity);
+                tool.m_shared.m_buildEffect.Create(player.transform.position, Quaternion.identity, null, 1f, -1, player.GetZDOID());
             }
 
             GameAccess.LastToolUseTime(player) = Time.time;
