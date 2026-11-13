@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net471</TargetFramework>
+    <AssemblyName>ValheimBetterStakewall</AssemblyName>
+    <RootNamespace>ValheimBetterStakewall</RootNamespace>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <DebugType>portable</DebugType>
+
+    <!-- Override on the command line or in a Directory.Build.props.user if your install moves. -->
+    <ValheimDir Condition="'$(ValheimDir)' == ''">D:\Steam\steamapps\common\Valheim</ValheimDir>
+    <ManagedDir>$(ValheimDir)\valheim_Data\Managed</ManagedDir>
+    <BepInExDir>$(ValheimDir)\BepInEx</BepInExDir>
+    <DeployToGame Condition="'$(DeployToGame)' == ''">true</DeployToGame>
+  </PropertyGroup>
+
+  <ItemDefinitionGroup>
+    <Reference><Private>false</Private></Reference>
+  </ItemDefinitionGroup>
+
+  <ItemGroup>
+    <Reference Include="BepInEx"><HintPath>$(BepInExDir)\core\BepInEx.dll</HintPath></Reference>
+    <Reference Include="0Harmony"><HintPath>$(BepInExDir)\core\0Harmony.dll</HintPath></Reference>
+
+    <Reference Include="assembly_valheim"><HintPath>$(ManagedDir)\assembly_valheim.dll</HintPath></Reference>
+    <Reference Include="assembly_utils"><HintPath>$(ManagedDir)\assembly_utils.dll</HintPath></Reference>
+    <Reference Include="assembly_guiutils"><HintPath>$(ManagedDir)\assembly_guiutils.dll</HintPath></Reference>
+
+    <Reference Include="UnityEngine"><HintPath>$(ManagedDir)\UnityEngine.dll</HintPath></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(ManagedDir)\UnityEngine.CoreModule.dll</HintPath></Reference>
+    <Reference Include="UnityEngine.PhysicsModule"><HintPath>$(ManagedDir)\UnityEngine.PhysicsModule.dll</HintPath></Reference>
+    <Reference Include="UnityEngine.IMGUIModule"><HintPath>$(ManagedDir)\UnityEngine.IMGUIModule.dll</HintPath></Reference>
+    <Reference Include="UnityEngine.TextRenderingModule"><HintPath>$(ManagedDir)\UnityEngine.TextRenderingModule.dll</HintPath></Reference>
+    <Reference Include="UnityEngine.InputLegacyModule"><HintPath>$(ManagedDir)\UnityEngine.InputLegacyModule.dll</HintPath></Reference>
+    <Reference Include="UnityEngine.UI"><HintPath>$(ManagedDir)\UnityEngine.UI.dll</HintPath></Reference>
+    <Reference Include="UnityEngine.UIModule"><HintPath>$(ManagedDir)\UnityEngine.UIModule.dll</HintPath></Reference>
+    <Reference Include="Unity.TextMeshPro"><HintPath>$(ManagedDir)\Unity.TextMeshPro.dll</HintPath></Reference>
+  </ItemGroup>
+
+  <Target Name="DeployPlugin" AfterTargets="Build" Condition="'$(DeployToGame)' == 'true' And Exists('$(BepInExDir)\plugins')">
+    <MakeDir Directories="$(BepInExDir)\plugins\$(AssemblyName)" />
+    <Copy SourceFiles="$(TargetPath);$(TargetDir)$(TargetName).pdb" DestinationFolder="$(BepInExDir)\plugins\$(AssemblyName)" SkipUnchangedFiles="true" />
+    <Message Importance="high" Text="Deployed $(TargetFileName) to $(BepInExDir)\plugins\$(AssemblyName)" />
+  </Target>
+
+</Project>
