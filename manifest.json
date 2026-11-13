@@ -1,0 +1,7 @@
+{
+  "name": "BetterStakewall",
+  "description": "Click and drag to build whole runs of stakewalls, with corners. Each piece sits level with the terrain on its low edge, so nothing floats. Costs, stamina, wear and skill gain are vanilla.",
+  "version_number": "0.1.0",
+  "website_url": "https://github.com/daemonbarber/ValheimBetterStakewall",
+  "dependencies": []
+}
