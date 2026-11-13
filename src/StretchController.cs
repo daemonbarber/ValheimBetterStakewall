@@ -92,11 +92,15 @@ namespace ValheimBetterStakewall
                 return true;
             }
 
-            if (ZInput.GetButtonDown("Remove") || ZInput.GetButtonDown("JoyRemove"))
-            {
+            // Right-click is the "BuildMenu" button; vanilla reads it in UpdateBuildGuiInput, which runs inside
+            // UpdatePlacement and is therefore skipped while dragging, so the menu stays shut. On a gamepad the
+            // remove button adds the corner instead.
+            if (ZInput.GetButtonDown("BuildMenu") || ZInput.GetButtonDown("JoyRemove"))
                 AddCorner();
+            // A remove press during a drag (gamepad corner, or a stray middle-click) must not remove a piece
+            // when it is released after the drag ends.
+            if (ZInput.GetButtonDown("Remove") || ZInput.GetButtonDown("JoyRemove"))
                 _suppressRemoveUntilRelease = true;
-            }
             if (_suppressRemoveUntilRelease) GameAccess.BlockRemove(player) = true;
 
             // Vanilla rotation input is skipped while dragging, so the scroll wheel flips the face side instead.
@@ -166,7 +170,7 @@ namespace ValheimBetterStakewall
 
         private static bool PlaceHeld() => ZInput.GetButton("Attack") || ZInput.GetButton("JoyPlace");
 
-        // A right-click used to add a corner must not later act as "remove piece" in vanilla.
+        // A remove press made during a drag must not later act as "remove piece" in vanilla.
         private static void GuardRemoveAfterCorner(Player player)
         {
             if (!_suppressRemoveUntilRelease) return;
@@ -179,7 +183,11 @@ namespace ValheimBetterStakewall
         private static void AddCorner()
         {
             var p = Snap(_cursor);
-            if (Vector3.Distance(PathPlanner.Flat(p), PathPlanner.Flat(_corners[_corners.Count - 1])) < 0.5f) return;
+            if (Vector3.Distance(PathPlanner.Flat(p), PathPlanner.Flat(_corners[_corners.Count - 1])) < 0.5f)
+            {
+                Plugin.Debug($"Corner ignored: {p} is within 0.5m of the previous corner.");
+                return;
+            }
             _corners.Add(p);
             _state = State.Stretching;
             Plugin.Debug($"Corner {_corners.Count - 1} at {p}");
@@ -468,7 +476,7 @@ namespace ValheimBetterStakewall
             }
 
             GameAccess.LastToolUseTime(player) = Time.time;
-            Plugin.Log.LogInfo($"Placed {count} × {_profile.PrefabName} along {_corners.Count} point path ({PathPlanner.PathLength(_pathScratch):0.0}m).");
+            Plugin.Debug($"Placed {count} × {_profile.PrefabName} along {_corners.Count} point path ({PathPlanner.PathLength(_pathScratch):0.0}m).");
         }
 
         // ------------------------------------------------------------------ ghosts
@@ -501,6 +509,15 @@ namespace ValheimBetterStakewall
                         // A preview only needs its meshes; drop the structural component before it can Start.
                         foreach (var wnt in g.GetComponentsInChildren<WearNTear>(true))
                             Object.DestroyImmediate(wnt);
+                        // The template ghost carries a MaterialManNotifier (added when vanilla tints it), which the
+                        // clone copies without being registered in MaterialMan; destroying it would then log
+                        // "Can't unregister renderer". A set/reset round-trip registers the clone under its own id.
+                        var clonePiece = g.GetComponent<Piece>();
+                        if (clonePiece)
+                        {
+                            clonePiece.SetInvalidPlacementHeightlight(true);
+                            clonePiece.SetInvalidPlacementHeightlight(false);
+                        }
                         _ghosts.Add(g);
                     }
                 }

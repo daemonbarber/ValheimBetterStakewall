@@ -10,7 +10,7 @@ A BepInEx mod for Valheim (built against 1.0.21 / BepInEx 5.4.23). Click and dra
 | Stretch | Drag the cursor. You can walk while holding to make long runs. |
 | Which side faces out | Set when you press. If you start on the end of an existing stakewall, the new row matches that wall's sides. Otherwise it follows the ghost's rotation (scroll before pressing to turn it). The same side stays outward around corners. |
 | Flip sides | **Scroll** while holding |
-| Add a corner | **Right-click** while holding |
+| Add a corner | **Right-click** while holding. The build menu doesn't open during a drag. |
 | Change fill mode | **Q / E** while holding (vanilla's snap-point keys, taken over during a drag). The choice is saved. |
 | Remove last corner / cancel | **Backspace** (`UndoCornerKey`). With no corners, this cancels the drag. |
 | Build | Release **place** |

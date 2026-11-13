@@ -103,7 +103,7 @@ namespace ValheimBetterStakewall
                 profile.Width = 2f;
             }
             Cache[name] = profile;
-            Plugin.Log.LogInfo("Wall profile " + profile);
+            Plugin.Debug("Wall profile " + profile);
             return profile;
         }
 

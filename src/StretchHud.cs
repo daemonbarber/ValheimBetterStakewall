@@ -51,6 +51,8 @@ namespace ValheimBetterStakewall
             if (!hud || !hud.m_rootObject || !style) return false;
 
             var go = new GameObject("BetterStakewall_Hud", typeof(RectTransform));
+            // Stay inactive until configured: TMP's Awake looks up a default font, which the game doesn't ship.
+            go.SetActive(false);
             go.layer = hud.m_rootObject.layer;
             var rt = (RectTransform)go.transform;
             rt.SetParent(hud.m_rootObject.transform, false);
@@ -70,7 +72,6 @@ namespace ValheimBetterStakewall
             _text.overflowMode = TextOverflowModes.Overflow;
             _text.raycastTarget = false;
             _shown = null;
-            go.SetActive(false);
             return true;
         }
     }
